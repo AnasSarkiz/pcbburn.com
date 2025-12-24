@@ -10,7 +10,6 @@
       "dist",
       "package.json",
       ".next",
-      "tsconfig.app.json",
       "tsconfig.json",
       "tsconfig.node.json",
       "src/__fixtures__"
