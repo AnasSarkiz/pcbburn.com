@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SettingsPanel } from "@/components/settings-panel"
@@ -26,6 +27,7 @@ export function WorkspaceContent({
   setSidebarOpen,
 }: { sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
   const { circuitJson } = useWorkspace()
+  const navigate = useNavigate()
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -39,12 +41,16 @@ export function WorkspaceContent({
         >
           {sidebarOpen ? <X className="size-4" /> : <Menu className="size-4" />}
         </Button>
-        <div className="flex items-center gap-2">
-          <div className="size-7 rounded bg-primary flex items-center justify-center">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 p-0 h-auto cursor-pointer hover:bg-transparent hover:text-inherit"
+          onClick={() => navigate("/")}
+        >
+          <div className="size-7 rounded  bg-primary flex items-center justify-center">
             <Zap className="size-4 text-primary-foreground" />
           </div>
           <span className="font-semibold tracking-tight">PCBBurn</span>
-        </div>
+        </Button>
         <Separator orientation="vertical" className="h-6 mx-2" />
         <span className="text-sm text-muted-foreground hidden sm:inline">
           Workspace

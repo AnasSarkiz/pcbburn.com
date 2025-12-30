@@ -133,8 +133,8 @@ export function SettingsPanel() {
               {isConverting
                 ? "Converting..."
                 : lbrnFileContent
-                  ? "File Previewed"
-                  : "Preview File"}
+                  ? "LBRN Generated"
+                  : "Generate LBRN"}
             </Button>
             {error && <div className="text-sm text-destructive">{error}</div>}
           </div>
