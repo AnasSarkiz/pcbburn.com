@@ -1,4 +1,9 @@
-import { createContext, useContext, useState, type ReactNode } from "react"
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react"
 import type { CircuitJson } from "circuit-json"
 
 interface LbrnFileContent {
@@ -38,7 +43,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
 )
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [circuitJson, setCircuitJson] = useState<CircuitJson | null>(null)
+  const [circuitJson, setCircuitJsonState] = useState<CircuitJson | null>(null)
   const [lbrnFileContent, setLbrnFileContent] =
     useState<LbrnFileContent | null>(null)
   const [lbrnOptions, setLbrnOptionsState] = useState<LbrnOptions>({
@@ -53,9 +58,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [isConverting, setIsConverting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const setCircuitJson = (data: CircuitJson | null) => {
+    setCircuitJsonState(data)
+    setLbrnFileContent(null) // Reset LBRN content when new circuit is loaded
+  }
+
   const setLbrnOptions = (options: Partial<LbrnOptions>) => {
     setLbrnOptionsState((prev) => ({ ...prev, ...options }))
   }
+
+  // Auto-convert to LBRN when circuit is loaded
+  React.useEffect(() => {
+    if (circuitJson && !lbrnFileContent && !isConverting) {
+      convertToLbrn()
+    }
+  }, [circuitJson, lbrnFileContent, isConverting])
 
   const convertToLbrn = async (options?: Partial<LbrnOptions>) => {
     if (!circuitJson) return
