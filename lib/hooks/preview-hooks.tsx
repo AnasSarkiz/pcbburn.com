@@ -1,4 +1,4 @@
-import { useState, useEffect, type RefObject } from "react"
+import { useState, useEffect, useLayoutEffect, type RefObject } from "react"
 import { useMouseMatrixTransform } from "use-mouse-matrix-transform"
 import { toString as transformToString } from "transformation-matrix"
 import { convertCircuitJsonToLbrn } from "circuit-json-to-lbrn"
@@ -63,23 +63,45 @@ export function useSvgTransform({
   svgToPreview,
   lbrnSvgDivRef,
   pcbSvgDivRef,
+  isSideBySide = false,
 }: {
   svgToPreview: "lbrn" | "pcb"
   lbrnSvgDivRef: RefObject<HTMLDivElement | null>
   pcbSvgDivRef: RefObject<HTMLDivElement | null>
+  isSideBySide?: boolean
 }) {
-  const hookResult = useMouseMatrixTransform({
-    enabled: true,
+  const lbrnHookResult = useMouseMatrixTransform({
+    enabled: svgToPreview === "lbrn" || isSideBySide,
   })
 
-  useEffect(() => {
-    const activeRef = svgToPreview === "lbrn" ? lbrnSvgDivRef : pcbSvgDivRef
-    if (activeRef.current && hookResult.transform) {
-      activeRef.current.style.transform = transformToString(
-        hookResult.transform,
+  const pcbHookResult = useMouseMatrixTransform({
+    enabled: svgToPreview === "pcb" || isSideBySide,
+  })
+
+  // Using useLayoutEffect to ensure transform is applied synchronously after DOM updates
+  useLayoutEffect(() => {
+    if (lbrnSvgDivRef.current && lbrnHookResult.transform) {
+      lbrnSvgDivRef.current.style.transform = transformToString(
+        lbrnHookResult.transform,
       )
     }
-  }, [hookResult.transform, svgToPreview, lbrnSvgDivRef, pcbSvgDivRef])
+    if (pcbSvgDivRef.current && pcbHookResult.transform) {
+      pcbSvgDivRef.current.style.transform = transformToString(
+        pcbHookResult.transform,
+      )
+    }
+  }, [
+    lbrnHookResult.transform,
+    pcbHookResult.transform,
+    lbrnSvgDivRef,
+    pcbSvgDivRef,
+    isSideBySide,
+    svgToPreview,
+  ])
 
-  return { transform: hookResult.transform, ref: hookResult.ref }
+  return {
+    ref: svgToPreview === "lbrn" ? lbrnHookResult.ref : pcbHookResult.ref,
+    lbrnRef: lbrnHookResult.ref,
+    pcbRef: pcbHookResult.ref,
+  }
 }
