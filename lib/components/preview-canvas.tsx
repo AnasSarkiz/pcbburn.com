@@ -81,7 +81,6 @@ export function PreviewCanvas() {
             Both
           </Button>
         </div>
-      
       </div>
 
       {/* Canvas Area */}
