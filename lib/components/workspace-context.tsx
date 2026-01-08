@@ -7,6 +7,19 @@ import React, {
 import type { CircuitJson } from "circuit-json"
 import type { ConvertCircuitJsonToLbrnOptions } from "circuit-json-to-lbrn"
 import { KicadToCircuitJsonConverter } from "kicad-to-circuit-json"
+
+const isValidCircuitJson = (data: unknown): data is CircuitJson => {
+  if (!Array.isArray(data) || data.length === 0) {
+    return false
+  }
+  // Simple validation: check that all elements are objects with a type property
+  return data.every(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof item.type === "string",
+  )
+}
 interface LbrnFileContent {
   xml: string | any
   options: any
@@ -106,18 +119,35 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const processCircuitFile = async (file: File) => {
     const fileName = file.name.toLowerCase()
+    setError(null)
 
-    if (fileName.endsWith(".json")) {
-      // Handle Circuit JSON files
-      const text = await file.text()
-      const circuitJsonData = JSON.parse(text)
-      setCircuitJson(circuitJsonData)
-    } else if (fileName.endsWith(".kicad_pcb")) {
-      // Handle KiCad PCB files
-      const text = await file.text()
-      await loadKicadPcbFile(text)
-    } else {
-      throw new Error("Please upload a .json or .kicad_pcb file")
+    try {
+      if (fileName.endsWith(".json")) {
+        // Handle Circuit JSON files
+        const text = await file.text()
+        let circuitJsonData: CircuitJson
+        try {
+          circuitJsonData = JSON.parse(text)
+        } catch (err) {
+          setError(
+            `Invalid JSON file: ${err instanceof Error ? err.message : "parse error"}`,
+          )
+          return
+        }
+        if (!isValidCircuitJson(circuitJsonData)) {
+          setError("Invalid circuit JSON: expected array of circuit elements")
+          return
+        }
+        setCircuitJson(circuitJsonData)
+      } else if (fileName.endsWith(".kicad_pcb")) {
+        // Handle KiCad PCB files
+        const text = await file.text()
+        await loadKicadPcbFile(text)
+      } else {
+        setError("Please upload a .json or .kicad_pcb file")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process file")
     }
   }
 

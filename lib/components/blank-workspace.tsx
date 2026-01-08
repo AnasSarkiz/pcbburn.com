@@ -5,8 +5,13 @@ import { Upload, FileUp, Zap, ArrowRight, CircuitBoard } from "lucide-react"
 import { useWorkspace } from "./workspace-context"
 
 export function BlankWorkspace() {
-  const { processCircuitFile, processCircuitDrop, setIsProcessingFile } =
-    useWorkspace()
+  const {
+    processCircuitFile,
+    processCircuitDrop,
+    setIsProcessingFile,
+    setError,
+    error,
+  } = useWorkspace()
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -16,10 +21,11 @@ export function BlankWorkspace() {
     const file = event.target.files?.[0]
     if (file) {
       try {
+        setError(null)
         setIsProcessingFile(true)
         await processCircuitFile(file)
       } catch (err) {
-        alert(err instanceof Error ? err.message : "Failed to process file")
+        setError(err instanceof Error ? err.message : "Failed to process file")
       } finally {
         setIsProcessingFile(false)
       }
@@ -43,7 +49,12 @@ export function BlankWorkspace() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-    await processCircuitDrop(e.dataTransfer)
+    try {
+      setError(null)
+      await processCircuitDrop(e.dataTransfer)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process file")
+    }
   }
 
   return (
@@ -72,7 +83,7 @@ export function BlankWorkspace() {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={openFileDialog}
-          className={`p-6 border-2 border-dashed cursor-pointer transition-all duration-200 ${
+          className={`relative p-6 border-2 border-dashed cursor-pointer transition-all duration-200 ${
             isDragOver
               ? "border-primary bg-primary/5 scale-[1.01]"
               : "border-border hover:border-primary/50"
@@ -106,6 +117,11 @@ export function BlankWorkspace() {
               <FileUp className="size-4" />
               Choose File
             </Button>
+            {error && (
+              <p className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-2 py-1">
+                {error}
+              </p>
+            )}
           </div>
         </Card>
 
