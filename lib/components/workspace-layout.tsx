@@ -26,7 +26,7 @@ export function WorkspaceContent({
   sidebarOpen,
   setSidebarOpen,
 }: { sidebarOpen: boolean; setSidebarOpen: (open: boolean) => void }) {
-  const { circuitJson, isProcessingFile } = useWorkspace()
+  const { circuitJson, isProcessingFile, error } = useWorkspace()
   const navigate = useNavigate()
 
   return (
@@ -61,8 +61,8 @@ export function WorkspaceContent({
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Settings Panel - Only show when circuit is loaded and not processing */}
-        {circuitJson && !isProcessingFile && (
+        {/* Left Settings Panel - Only show when circuit is loaded and not processing and no error */}
+        {circuitJson && !isProcessingFile && !error && (
           <aside
             className={`${
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -74,7 +74,7 @@ export function WorkspaceContent({
 
         {/* Canvas Preview Area */}
         <main className="flex-1 overflow-hidden">
-          {circuitJson || isProcessingFile ? (
+          {(circuitJson || isProcessingFile) && !error ? (
             <PreviewCanvas />
           ) : (
             <BlankWorkspace />
