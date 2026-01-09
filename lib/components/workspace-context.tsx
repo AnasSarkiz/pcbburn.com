@@ -201,7 +201,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             await processCircuitFile(kicadFile)
             return
           } else {
-            alert("No .kicad_pcb file found in the dropped folder")
+            setError("No .kicad_pcb file found in the dropped folder")
             return
           }
         }
