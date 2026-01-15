@@ -411,6 +411,18 @@ export function SettingsPanel() {
             min={-Infinity}
             unit="mm"
           />
+          <NumericControl
+            value={lbrnOptions.solderMaskMarginPercent ?? 0}
+            onChange={(value) =>
+              setLbrnOptions({
+                ...lbrnOptions,
+                solderMaskMarginPercent: value,
+              })
+            }
+            label="Soldermask Margin Percent"
+            min={-Infinity}
+            unit="%"
+          />
 
           {/* Origin Controls */}
           <div className="space-y-2">
