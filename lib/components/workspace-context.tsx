@@ -66,6 +66,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       includeLayers: ["top", "bottom"],
       laserSpotSize: 0.005,
       traceMargin: 0,
+      globalCopperSoldermaskMarginAdjustment: 0,
+      solderMaskMarginPercent: 0,
       origin: { x: 0, y: 0 },
     })
   const [isConverting, setIsConverting] = useState(false)
