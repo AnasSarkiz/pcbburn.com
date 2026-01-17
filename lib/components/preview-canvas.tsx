@@ -29,6 +29,7 @@ export function PreviewCanvas() {
     pcbContainerRef,
     lbrnSvg,
     pcbSvg,
+    circuitJson,
     isSideBySide: viewMode === "both",
   })
 
