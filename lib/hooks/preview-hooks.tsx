@@ -74,6 +74,7 @@ export function useSvgTransform({
   pcbContainerRef,
   lbrnSvg,
   pcbSvg,
+  circuitJson,
   isSideBySide = false,
 }: {
   svgToPreview: "lbrn" | "pcb"
@@ -83,6 +84,7 @@ export function useSvgTransform({
   pcbContainerRef: RefObject<HTMLElement | null>
   lbrnSvg: string
   pcbSvg: string
+  circuitJson: CircuitJson | null
   isSideBySide?: boolean
 }) {
   // Track whether we've computed the initial fit for each view
@@ -106,9 +108,9 @@ export function useSvgTransform({
     initialTransform: pcbInitialTransform,
   })
 
-  // Compute and set initial fit transform for LBRN when SVG content changes
+  // Compute and set initial fit transform for LBRN when circuit changes
   useLayoutEffect(() => {
-    if (!lbrnSvg || lbrnInitialized) return
+    if (!circuitJson || !lbrnSvg || lbrnInitialized) return
 
     // Use requestAnimationFrame to ensure SVG is rendered in DOM
     const frameId = requestAnimationFrame(() => {
@@ -127,6 +129,7 @@ export function useSvgTransform({
 
     return () => cancelAnimationFrame(frameId)
   }, [
+    circuitJson,
     lbrnSvg,
     lbrnSvgDivRef,
     lbrnContainerRef,
@@ -134,9 +137,9 @@ export function useSvgTransform({
     lbrnHookResult,
   ])
 
-  // Compute and set initial fit transform for PCB when SVG content changes
+  // Compute and set initial fit transform for PCB when circuit changes
   useLayoutEffect(() => {
-    if (!pcbSvg || pcbInitialized) return
+    if (!circuitJson || !pcbSvg || pcbInitialized) return
 
     const frameId = requestAnimationFrame(() => {
       const svgDiv = pcbSvgDivRef.current
@@ -153,28 +156,31 @@ export function useSvgTransform({
     })
 
     return () => cancelAnimationFrame(frameId)
-  }, [pcbSvg, pcbSvgDivRef, pcbContainerRef, pcbInitialized, pcbHookResult])
+  }, [
+    circuitJson,
+    pcbSvg,
+    pcbSvgDivRef,
+    pcbContainerRef,
+    pcbInitialized,
+    pcbHookResult,
+  ])
 
   // Track previous values to detect changes
-  const prevLbrnSvg = useRef(lbrnSvg)
-  const prevPcbSvg = useRef(pcbSvg)
+  const prevCircuitJson = useRef(circuitJson)
   const prevIsSideBySide = useRef(isSideBySide)
   const prevSvgToPreview = useRef(svgToPreview)
 
-  // Reset initialization when SVG content or view mode changes
+  // Reset initialization when circuit or view mode changes
   useEffect(() => {
-    const lbrnSvgChanged = prevLbrnSvg.current !== lbrnSvg
-    const pcbSvgChanged = prevPcbSvg.current !== pcbSvg
+    const circuitChanged = prevCircuitJson.current !== circuitJson
     const viewModeChanged = prevIsSideBySide.current !== isSideBySide
     // When switching between single views (lbrn <-> pcb), the container size changes
     // so we need to recompute the fit transform for the newly active view
     const singleViewChanged =
       !isSideBySide && prevSvgToPreview.current !== svgToPreview
 
-    if (lbrnSvgChanged || viewModeChanged) {
+    if (circuitChanged || viewModeChanged) {
       setLbrnInitialized(false)
-    }
-    if (pcbSvgChanged || viewModeChanged) {
       setPcbInitialized(false)
     }
     // When switching single views, reset the view we're switching TO
@@ -186,8 +192,7 @@ export function useSvgTransform({
       }
     }
 
-    prevLbrnSvg.current = lbrnSvg
-    prevPcbSvg.current = pcbSvg
+    prevCircuitJson.current = circuitJson
     prevIsSideBySide.current = isSideBySide
     prevSvgToPreview.current = svgToPreview
   })
