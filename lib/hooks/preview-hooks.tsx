@@ -33,14 +33,30 @@ export function useSvgGeneration({
 
   const isGenerating = isGeneratingLbrn || isGeneratingPcb
 
+  const lastLbrnInputs = useRef<{
+    circuitJson: CircuitJson
+    lbrnOptions: ConvertCircuitJsonToLbrnOptions
+  } | null>(null)
+  const lastPcbCircuit = useRef<CircuitJson | null>(null)
+
   useEffect(() => {
     if (!circuitJson) {
       setLbrnSvg("")
       setIsGeneratingLbrn(false)
+      lastLbrnInputs.current = null
       return
     }
 
     if (viewMode === "pcb") {
+      setIsGeneratingLbrn(false)
+      return
+    }
+
+    if (
+      lbrnSvg &&
+      lastLbrnInputs.current?.circuitJson === circuitJson &&
+      lastLbrnInputs.current?.lbrnOptions === lbrnOptions
+    ) {
       setIsGeneratingLbrn(false)
       return
     }
@@ -57,11 +73,13 @@ export function useSvgGeneration({
         const lbrnSvgResult = generateLightBurnSvg(lbrnProject)
         if (!cancelled) {
           setLbrnSvg(String(lbrnSvgResult))
+          lastLbrnInputs.current = { circuitJson, lbrnOptions }
         }
       } catch (err) {
         console.error("Failed to generate LBRN SVG:", err)
         if (!cancelled) {
           setLbrnSvg("")
+          lastLbrnInputs.current = null
         }
       } finally {
         if (!cancelled) {
@@ -75,16 +93,22 @@ export function useSvgGeneration({
     return () => {
       cancelled = true
     }
-  }, [circuitJson, lbrnOptions, viewMode])
+  }, [circuitJson, lbrnOptions, viewMode, lbrnSvg])
 
   useEffect(() => {
     if (!circuitJson) {
       setPcbSvg("")
       setIsGeneratingPcb(false)
+      lastPcbCircuit.current = null
       return
     }
 
     if (viewMode === "lbrn") {
+      setIsGeneratingPcb(false)
+      return
+    }
+
+    if (pcbSvg && lastPcbCircuit.current === circuitJson) {
       setIsGeneratingPcb(false)
       return
     }
@@ -99,11 +123,13 @@ export function useSvgGeneration({
         )
         if (!cancelled) {
           setPcbSvg(String(pcbSvgResult))
+          lastPcbCircuit.current = circuitJson
         }
       } catch (err) {
         console.error("Failed to generate PCB SVG:", err)
         if (!cancelled) {
           setPcbSvg("")
+          lastPcbCircuit.current = null
         }
       } finally {
         if (!cancelled) {
@@ -117,7 +143,7 @@ export function useSvgGeneration({
     return () => {
       cancelled = true
     }
-  }, [circuitJson, viewMode])
+  }, [circuitJson, viewMode, pcbSvg])
 
   return { lbrnSvg, pcbSvg, isGenerating }
 }
