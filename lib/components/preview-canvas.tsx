@@ -13,6 +13,7 @@ export function PreviewCanvas() {
   const { lbrnSvg, pcbSvg, isGenerating } = useSvgGeneration({
     circuitJson,
     lbrnOptions,
+    viewMode,
   })
 
   const lbrnSvgDivRef = useRef<HTMLDivElement>(null)
