@@ -20,48 +20,104 @@ import { IDENTITY_MATRIX, computeFitTransform } from "../helpers/svg-transform"
 export function useSvgGeneration({
   circuitJson,
   lbrnOptions,
+  viewMode,
 }: {
   circuitJson: CircuitJson | null
   lbrnOptions: ConvertCircuitJsonToLbrnOptions
+  viewMode: "lbrn" | "pcb" | "both"
 }) {
   const [lbrnSvg, setLbrnSvg] = useState("")
   const [pcbSvg, setPcbSvg] = useState("")
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [isGeneratingLbrn, setIsGeneratingLbrn] = useState(false)
+  const [isGeneratingPcb, setIsGeneratingPcb] = useState(false)
+
+  const isGenerating = isGeneratingLbrn || isGeneratingPcb
 
   useEffect(() => {
     if (!circuitJson) {
       setLbrnSvg("")
-      setPcbSvg("")
+      setIsGeneratingLbrn(false)
       return
     }
 
-    const generateSvgs = async () => {
-      setIsGenerating(true)
+    if (viewMode === "pcb") {
+      setIsGeneratingLbrn(false)
+      return
+    }
+
+    let cancelled = false
+
+    const generateLbrnSvg = async () => {
+      setIsGeneratingLbrn(true)
       try {
-        // Generate LBRN SVG
         const lbrnProject = convertCircuitJsonToLbrn(
           circuitJson as CircuitJson,
           lbrnOptions,
         )
         const lbrnSvgResult = generateLightBurnSvg(lbrnProject)
-        setLbrnSvg(String(lbrnSvgResult))
-
-        // Generate PCB SVG
-        const pcbSvgResult = convertCircuitJsonToPcbSvg(
-          circuitJson as CircuitJson,
-        )
-        setPcbSvg(String(pcbSvgResult))
+        if (!cancelled) {
+          setLbrnSvg(String(lbrnSvgResult))
+        }
       } catch (err) {
-        console.error("Failed to generate SVGs:", err)
-        setLbrnSvg("")
-        setPcbSvg("")
+        console.error("Failed to generate LBRN SVG:", err)
+        if (!cancelled) {
+          setLbrnSvg("")
+        }
       } finally {
-        setIsGenerating(false)
+        if (!cancelled) {
+          setIsGeneratingLbrn(false)
+        }
       }
     }
 
-    generateSvgs()
-  }, [circuitJson, lbrnOptions])
+    generateLbrnSvg()
+
+    return () => {
+      cancelled = true
+    }
+  }, [circuitJson, lbrnOptions, viewMode])
+
+  useEffect(() => {
+    if (!circuitJson) {
+      setPcbSvg("")
+      setIsGeneratingPcb(false)
+      return
+    }
+
+    if (viewMode === "lbrn") {
+      setIsGeneratingPcb(false)
+      return
+    }
+
+    let cancelled = false
+
+    const generatePcbSvg = async () => {
+      setIsGeneratingPcb(true)
+      try {
+        const pcbSvgResult = convertCircuitJsonToPcbSvg(
+          circuitJson as CircuitJson,
+        )
+        if (!cancelled) {
+          setPcbSvg(String(pcbSvgResult))
+        }
+      } catch (err) {
+        console.error("Failed to generate PCB SVG:", err)
+        if (!cancelled) {
+          setPcbSvg("")
+        }
+      } finally {
+        if (!cancelled) {
+          setIsGeneratingPcb(false)
+        }
+      }
+    }
+
+    generatePcbSvg()
+
+    return () => {
+      cancelled = true
+    }
+  }, [circuitJson, viewMode])
 
   return { lbrnSvg, pcbSvg, isGenerating }
 }
