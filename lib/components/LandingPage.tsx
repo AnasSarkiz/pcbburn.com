@@ -1,6 +1,8 @@
 import { ArrowRight, Code, Eye, FileUp, Flame, Zap } from "lucide-react"
 import { Link } from "react-router-dom"
+import { ImageWithSkeleton } from "./image-with-skeleton"
 import { Button } from "./ui/button"
+import { VideoWithLoader } from "./video-with-loader"
 
 export default function LandingPage() {
   return (
@@ -102,7 +104,8 @@ export default function LandingPage() {
             From Design to Laser-Cut PCB
           </h2>
           <div className="relative mx-auto max-w-4xl aspect-video rounded-xl overflow-hidden shadow-2xl">
-            <video
+            <VideoWithLoader
+              src="/assets/laserVid.MP4"
               className="w-full h-full object-cover pointer-events-none"
               muted
               loop
@@ -111,10 +114,9 @@ export default function LandingPage() {
               preload="metadata"
               aria-label="Laser machining demonstration video"
             >
-              <source src="/assets/laserVid.MP4" type="video/mp4" />
               Oops! Your browser doesn't support video playback. Try updating or
               using a modern browser
-            </video>
+            </VideoWithLoader>
           </div>
         </div>
       </section>
@@ -150,10 +152,11 @@ export default function LandingPage() {
             to define a soldermask pattern for assembly.{" "}
           </p>
           <div className="relative mx-auto max-w-xl">
-            <img
+            <ImageWithSkeleton
               src="/assets/board.jpeg"
               alt="Completed PCB board laser-cut using converted LBRN files from tscircuit design"
               className="w-full h-auto rounded-lg shadow-lg"
+              skeletonClassName="aspect-[4/3]"
             />
           </div>
         </div>

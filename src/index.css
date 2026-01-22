@@ -63,3 +63,13 @@
 .subtle-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: oklch(55.495% 0.1746 253.645);
 }
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
