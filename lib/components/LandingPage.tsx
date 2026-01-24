@@ -59,51 +59,10 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-4 py-20 md:py-32 bg-background">
-        <div className="max-w-3xl mx-auto text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary text-sm text-primary">
-            <Zap className="size-3.5" />
-            <span className="font-medium">tscircuit PCB Laser Cutting</span>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-balance">
-            Upload & Burn PCBs
-            <span className="block text-primary mt-2">In Seconds</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground text-balance max-w-2xl mx-auto leading-relaxed">
-            Convert tscircuit Circuit JSON and KiCad files to LBRN format with
-            precision. Preview layers, adjust laser parameters, and export
-            ready-to-cut files for professional results.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Button
-              size="lg"
-              className="w-full sm:w-auto transition-all hover:opacity-80"
-              asChild
-            >
-              <Link to="/workspace">
-                Start Converting <ArrowRight className="ml-2 size-5" />
-              </Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full sm:w-auto bg-transparent"
-              asChild
-            >
-              <Link to="/demo">View Demo</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Demo Video Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h2 className="text-3xl md:text-4xl mb-6 font-bold text-balance">
-            From Design to Laser-Cut PCB
-          </h2>
-          <div className="relative mx-auto max-w-4xl aspect-video rounded-xl overflow-hidden shadow-2xl">
+      <div className="flex flex-col md:flex-row-reverse md:items-center md:justify-between md:py-12 md:px-12 md:h-[77vh]">
+        {/* Demo Video Section */}
+        <section className="px-4 md:pr-12 md:w-[40%] py-12">
+          <div className="relative mx-auto w-full aspect-video rounded-xl overflow-hidden shadow-xl">
             <VideoWithLoader
               src="/assets/laserVid.MP4"
               className="w-full h-full object-cover pointer-events-none"
@@ -113,14 +72,46 @@ export default function LandingPage() {
               playsInline
               preload="metadata"
               aria-label="Laser machining demonstration video"
-            >
-              Oops! Your browser doesn't support video playback. Try updating or
-              using a modern browser
-            </VideoWithLoader>
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
+        {/* Hero Section */}
+        <section className="flex md:pl-12 flex-col md:w-[60%] items-center md:items-start justify-center px-4 py-12 ">
+          <div className="md:max-w-xl w-full space-y-4 text-center md:text-left">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-balance">
+              Upload & Burn PCBs
+              <span className="block text-primary mt-2">In Seconds</span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+              Convert tscircuit Circuit JSON and KiCad files to LBRN format with
+              precision. Preview layers, adjust laser parameters, and export
+              ready-to-cut files for professional results. It’s open source.
+            </p>
+          </div>
+        </section>
+      </div>
+      <div className="flex flex-col sm:flex-row px-16 sm:px-0 gap-4 pt-4 items-center  justify-center">
+        <Button size="lg" asChild>
+          <Link to="/workspace">
+            Start Converting <ArrowRight className="ml-2 size-5" />
+          </Link>
+        </Button>
+        <Button size="lg" variant="outline" asChild>
+          <Link to="/demo">View Demo</Link>
+        </Button>
+        <a
+          href="https://github.com/tscircuit/pcbburn.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            alt="GitHub stars"
+            src="https://img.shields.io/github/stars/tscircuit/pcbburn.com?style=social"
+          />
+        </a>
+      </div>
       {/* PCB board Section */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -163,9 +154,9 @@ export default function LandingPage() {
       </section>
 
       {/* Features Grid */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
+      <section className="container mx-auto px-4 py-16 md:py-24 ">
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover:border-primary/50 transition-colors">
+          <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover:border-primary/50 hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="size-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <FileUp className="size-6 text-primary" />
             </div>
@@ -175,7 +166,7 @@ export default function LandingPage() {
               or click to browse. Instant validation and preview.
             </p>
           </div>
-          <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover:border-accent/50 transition-colors">
+          <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover:border-accent/50 hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="size-12 rounded-lg bg-accent/10 flex items-center justify-center">
               <Eye className="size-6 text-primary" />
             </div>
@@ -185,7 +176,7 @@ export default function LandingPage() {
               how your PCB will burn before exporting.
             </p>
           </div>
-          <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover:border-primary/50 transition-colors">
+          <div className="bg-card border border-border rounded-lg p-6 space-y-3 hover:border-primary/50 hover:scale-105 transition-all duration-300 cursor-pointer">
             <div className="size-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Zap className="size-6 text-primary" />
             </div>
