@@ -25,21 +25,21 @@ export function SettingsPanel() {
   // Laser profile presets
   const laserProfiles = {
     "Omni X 6W 150x150": {
-      copper: { speed: 300, numPasses: 1, frequency: 20, pulseWidth: 0.000001 },
-      board: { speed: 20, numPasses: 1, frequency: 20, pulseWidth: 0.000001 },
+      copper: { speed: 300, numPasses: 1, frequency: 20, pulseWidth: 1 },
+      board: { speed: 20, numPasses: 1, frequency: 20, pulseWidth: 1 },
     },
     Default: {
       copper: {
         speed: 300,
         numPasses: 100,
         frequency: 20000,
-        pulseWidth: 0.000001,
+        pulseWidth: 1,
       },
       board: {
         speed: 20,
         numPasses: 100,
         frequency: 20000,
-        pulseWidth: 0.000001,
+        pulseWidth: 1,
       },
     },
   }
@@ -558,7 +558,7 @@ export function SettingsPanel() {
               unit="kHz"
             />
             <NumericControl
-              value={lbrnOptions.laserProfile?.copper?.pulseWidth ?? 0.000001}
+              value={lbrnOptions.laserProfile?.copper?.pulseWidth ?? 1}
               onChange={(value) =>
                 setLbrnOptions({
                   ...lbrnOptions,
@@ -572,8 +572,8 @@ export function SettingsPanel() {
                 })
               }
               label="Pulse Width"
-              min={0.0000001}
-              unit="s"
+              min={1}
+              unit="ns"
             />
           </div>
 
@@ -636,7 +636,7 @@ export function SettingsPanel() {
               unit="kHz"
             />
             <NumericControl
-              value={lbrnOptions.laserProfile?.board?.pulseWidth ?? 0.000001}
+              value={lbrnOptions.laserProfile?.board?.pulseWidth ?? 1}
               onChange={(value) =>
                 setLbrnOptions({
                   ...lbrnOptions,
@@ -650,8 +650,8 @@ export function SettingsPanel() {
                 })
               }
               label="Pulse Width"
-              min={0.0000001}
-              unit="s"
+              min={1}
+              unit="ns"
             />
           </div>
         </div>
