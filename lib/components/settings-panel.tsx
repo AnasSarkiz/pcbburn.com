@@ -52,6 +52,7 @@ export function SettingsPanel() {
     Record<string, LaserProfile>
   >({})
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
+  const [profilesLoaded, setProfilesLoaded] = useState(false)
 
   const laserProfiles = React.useMemo(
     () => ({ ...builtInLaserProfiles, ...customProfiles }),
@@ -117,10 +118,13 @@ export function SettingsPanel() {
       }
     } catch (err) {
       console.warn("Failed to load laser profiles", err)
+    } finally {
+      setProfilesLoaded(true)
     }
   }, [])
 
   React.useEffect(() => {
+    if (!profilesLoaded) return
     if (typeof window === "undefined") return
     try {
       window.localStorage.setItem(
@@ -130,7 +134,7 @@ export function SettingsPanel() {
     } catch (err) {
       console.warn("Failed to save laser profiles", err)
     }
-  }, [customProfiles])
+  }, [customProfiles, profilesLoaded])
 
   React.useEffect(() => {
     if (laserProfiles[selectedProfile]) return
