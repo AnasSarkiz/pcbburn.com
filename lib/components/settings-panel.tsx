@@ -3,7 +3,32 @@ import React, { useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Cpu, Layers, Settings, Upload, Zap } from "lucide-react"
+import { type LaserProfile, LaserProfileDialog } from "./laser-profile-dialog"
+import { NumericControl } from "./numeric-control"
 import { useWorkspace } from "./workspace-context"
+
+const LASER_PROFILES_STORAGE_KEY = "pcb-burn:laser-profiles"
+
+const builtInLaserProfiles: Record<string, LaserProfile> = {
+  "Omni X 6W 150x150": {
+    copper: { speed: 300, numPasses: 1, frequency: 20, pulseWidth: 1 },
+    board: { speed: 20, numPasses: 1, frequency: 20, pulseWidth: 1 },
+  },
+  Default: {
+    copper: {
+      speed: 300,
+      numPasses: 100,
+      frequency: 20000,
+      pulseWidth: 1,
+    },
+    board: {
+      speed: 20,
+      numPasses: 100,
+      frequency: 20000,
+      pulseWidth: 1,
+    },
+  },
+}
 
 export function SettingsPanel() {
   const {
@@ -22,29 +47,16 @@ export function SettingsPanel() {
   const [isResizing, setIsResizing] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Laser profile presets
-  const laserProfiles = {
-    "Omni X 6W 150x150": {
-      copper: { speed: 300, numPasses: 1, frequency: 20, pulseWidth: 1 },
-      board: { speed: 20, numPasses: 1, frequency: 20, pulseWidth: 1 },
-    },
-    Default: {
-      copper: {
-        speed: 300,
-        numPasses: 100,
-        frequency: 20000,
-        pulseWidth: 1,
-      },
-      board: {
-        speed: 20,
-        numPasses: 100,
-        frequency: 20000,
-        pulseWidth: 1,
-      },
-    },
-  }
-
   const [selectedProfile, setSelectedProfile] = useState<string>("Default")
+  const [customProfiles, setCustomProfiles] = useState<
+    Record<string, LaserProfile>
+  >({})
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
+
+  const laserProfiles = React.useMemo(
+    () => ({ ...builtInLaserProfiles, ...customProfiles }),
+    [customProfiles],
+  )
 
   // Resize functionality
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -89,6 +101,75 @@ export function SettingsPanel() {
     }
   }, [isResizing, handleMouseMove, handleMouseUp])
 
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      const storedProfiles = window.localStorage.getItem(
+        LASER_PROFILES_STORAGE_KEY,
+      )
+      if (!storedProfiles) return
+      const parsedProfiles = JSON.parse(storedProfiles) as Record<
+        string,
+        LaserProfile
+      >
+      if (parsedProfiles && typeof parsedProfiles === "object") {
+        setCustomProfiles(parsedProfiles)
+      }
+    } catch (err) {
+      console.warn("Failed to load laser profiles", err)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      window.localStorage.setItem(
+        LASER_PROFILES_STORAGE_KEY,
+        JSON.stringify(customProfiles),
+      )
+    } catch (err) {
+      console.warn("Failed to save laser profiles", err)
+    }
+  }, [customProfiles])
+
+  React.useEffect(() => {
+    if (laserProfiles[selectedProfile]) return
+    setSelectedProfile("Default")
+  }, [laserProfiles, selectedProfile])
+
+  const handleSaveProfile = (name: string, profile: LaserProfile) => {
+    setCustomProfiles((prev) => ({
+      ...prev,
+      [name]: profile,
+    }))
+    setLbrnOptions({
+      ...lbrnOptions,
+      laserProfile: {
+        copper: { ...profile.copper },
+        board: { ...profile.board },
+      },
+    })
+    setSelectedProfile(name)
+  }
+
+  const initialProfile = React.useMemo(
+    () => ({
+      copper: {
+        speed: lbrnOptions.laserProfile?.copper?.speed ?? 300,
+        numPasses: lbrnOptions.laserProfile?.copper?.numPasses ?? 100,
+        frequency: lbrnOptions.laserProfile?.copper?.frequency ?? 20000,
+        pulseWidth: lbrnOptions.laserProfile?.copper?.pulseWidth ?? 1,
+      },
+      board: {
+        speed: lbrnOptions.laserProfile?.board?.speed ?? 20,
+        numPasses: lbrnOptions.laserProfile?.board?.numPasses ?? 100,
+        frequency: lbrnOptions.laserProfile?.board?.frequency ?? 20000,
+        pulseWidth: lbrnOptions.laserProfile?.board?.pulseWidth ?? 1,
+      },
+    }),
+    [lbrnOptions.laserProfile],
+  )
+
   // Load laser profile preset
   const loadLaserProfile = (profileName: string) => {
     const profile = laserProfiles[profileName as keyof typeof laserProfiles]
@@ -132,61 +213,6 @@ export function SettingsPanel() {
       await processCircuitFile(files[0])
     }
   }
-  // Helper function for numeric controls
-  const NumericControl = ({
-    value,
-    onChange,
-    label,
-    min = 0,
-    unit = "",
-  }: {
-    value: number
-    onChange: (value: number) => void
-    label: string
-    min?: number
-    unit?: string
-  }) => {
-    const [inputValue, setInputValue] = useState(value.toString())
-
-    React.useEffect(() => {
-      setInputValue(value.toString())
-    }, [value])
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value
-      setInputValue(newValue)
-    }
-
-    const handleInputBlur = () => {
-      const numericValue = parseFloat(inputValue)
-      if (Number.isNaN(numericValue) || numericValue < min) {
-        // Reset to original value if invalid
-        setInputValue(value.toString())
-      } else {
-        // Commit the valid value
-        onChange(Math.max(min, numericValue))
-      }
-    }
-
-    return (
-      <div className="flex items-center justify-between">
-        <span className="text-sm">{label}</span>
-        <div className="flex items-center gap-1">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-            className="text-xs w-24 text-center border border-input bg-background rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-          {unit && (
-            <span className="text-xs text-muted-foreground w-6">{unit}</span>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div
       ref={panelRef}
@@ -377,6 +403,13 @@ export function SettingsPanel() {
               ))}
             </select>
           </div>
+          <button
+            type="button"
+            className="text-sm text-blue-600 underline hover:text-blue-700"
+            onClick={() => setIsProfileDialogOpen(true)}
+          >
+            Add new laser profile
+          </button>
 
           {/* Copper Settings */}
           <div className="space-y-2">
@@ -536,6 +569,14 @@ export function SettingsPanel() {
           </div>
         </div>
       </div>
+
+      <LaserProfileDialog
+        open={isProfileDialogOpen}
+        onOpenChange={setIsProfileDialogOpen}
+        initialProfile={initialProfile}
+        existingProfileNames={Object.keys(laserProfiles)}
+        onSave={handleSaveProfile}
+      />
     </div>
   )
 }
