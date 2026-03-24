@@ -20,7 +20,7 @@
     "@tscircuit/plop": "^0.0.72",
     "circuit-json": "^0.0.403",
     "circuit-json-to-lbrn": "^0.0.69",
-    "circuit-to-svg": "^0.0.337",
+    "circuit-to-svg": "^0.0.338",
     "kicad-to-circuit-json": "^0.0.32",
     "lbrnts": "^0.0.17",
     "lucide-react": "^0.562.0",
