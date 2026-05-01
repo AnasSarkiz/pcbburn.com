@@ -11,15 +11,27 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import {
+  applyCutSettingVisibility,
+  getExistingCutSettings,
+} from "../helpers/lightburn-cut-settings"
 import { useSvgGeneration, useSvgTransform } from "../hooks/preview-hooks"
+import { CuttingLayersVisibilityMenu } from "./cutting-layers-visibility-menu"
 import { useWorkspace } from "./workspace-context"
+
 export function PreviewCanvas() {
-  const { circuitJson, lbrnOptions, isProcessingFile, setLbrnOptions } =
-    useWorkspace()
+  const {
+    circuitJson,
+    lbrnFileContent,
+    lbrnOptions,
+    isProcessingFile,
+    setLbrnOptions,
+  } = useWorkspace()
   const [viewMode, setViewMode] = useState<"lbrn" | "pcb" | "both">("lbrn")
   const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false)
+  const [hiddenCutIndexes, setHiddenCutIndexes] = useState<number[]>([])
   const { lbrnSvg, pcbSvg, isGenerating } = useSvgGeneration({
     circuitJson,
     lbrnOptions,
@@ -51,6 +63,24 @@ export function PreviewCanvas() {
       circuitJson,
       isSideBySide: viewMode === "both",
     })
+
+  const existingCutSettings = useMemo(
+    () => getExistingCutSettings(lbrnFileContent?.xml),
+    [lbrnFileContent?.xml],
+  )
+  const visibleLbrnSvg = useMemo(
+    () => applyCutSettingVisibility(lbrnSvg, hiddenCutIndexes),
+    [lbrnSvg, hiddenCutIndexes],
+  )
+
+  useEffect(() => {
+    const existingIndexes = new Set(
+      existingCutSettings.map((cutSetting) => cutSetting.index),
+    )
+    setHiddenCutIndexes((current) =>
+      current.filter((index) => existingIndexes.has(index)),
+    )
+  }, [existingCutSettings])
 
   useEffect(() => {
     if (!isLayerMenuOpen) return
@@ -114,6 +144,14 @@ export function PreviewCanvas() {
       : [...includeLayers, layer]
 
     setLbrnOptions({ includeLayers: nextLayers })
+  }
+
+  const toggleCutSettingVisibility = (cutIndex: number) => {
+    setHiddenCutIndexes((current) =>
+      current.includes(cutIndex)
+        ? current.filter((index) => index !== cutIndex)
+        : [...current, cutIndex],
+    )
   }
 
   // Show loading screen when processing file but no circuit yet
@@ -208,6 +246,11 @@ export function PreviewCanvas() {
               document.body,
             )}
         </div>
+        <CuttingLayersVisibilityMenu
+          cutSettings={existingCutSettings}
+          hiddenCutIndexes={hiddenCutIndexes}
+          onToggleCutIndex={toggleCutSettingVisibility}
+        />
         <Separator orientation="vertical" className="h-6" />
         <div className="flex items-center gap-1">
           <Button
@@ -323,7 +366,7 @@ export function PreviewCanvas() {
                     ) : (
                       <div
                         dangerouslySetInnerHTML={{
-                          __html: lbrnSvg,
+                          __html: visibleLbrnSvg,
                         }}
                       />
                     )}
@@ -438,7 +481,7 @@ export function PreviewCanvas() {
               ) : (
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: viewMode === "lbrn" ? lbrnSvg : pcbSvg,
+                    __html: viewMode === "lbrn" ? visibleLbrnSvg : pcbSvg,
                   }}
                 />
               )}
