@@ -382,7 +382,7 @@ export function SettingsPanel() {
             unit="mm"
           />
           <NumericControl
-            value={lbrnOptions.traceMargin ?? 0}
+            value={lbrnOptions.traceMargin ?? 0.5}
             onChange={(value) =>
               setLbrnOptions({ ...lbrnOptions, traceMargin: value })
             }
@@ -391,7 +391,7 @@ export function SettingsPanel() {
             unit="mm"
           />
           <NumericControl
-            value={lbrnOptions.copperCutFillMargin ?? 0}
+            value={lbrnOptions.copperCutFillMargin ?? 0.5}
             onChange={(value) =>
               setLbrnOptions({ ...lbrnOptions, copperCutFillMargin: value })
             }
